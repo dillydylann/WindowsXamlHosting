@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net46;netcoreapp3.1</TargetFrameworks>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="Exists('..\WindowsXamlHosting.snk')">
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>..\WindowsXamlHosting.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<WindowsKitsPath>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Kits\Installed Roots', 'KitsRoot10', null, RegistryView.Registry32, RegistryView.Default))</WindowsKitsPath>
+	</PropertyGroup>
+	<ItemGroup>
+		<Reference Include="Windows">
+			<HintPath>$(WindowsKitsPath)UnionMetadata\10.0.19041.0\Windows.winmd</HintPath>
+			<IsWinMDFile>true</IsWinMDFile>
+		</Reference>
+		<PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
+		<Reference Include="System.Numerics.Vectors" />
+	</ItemGroup>
+
+</Project>
