@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 
 static class NativeMethods
 {
@@ -34,6 +35,7 @@ static class NativeMethods
         WS_VSCROLL = 0x200000;
 
     public const int
+        WM_MOVE = 0x0003,
         WM_ACTIVATE = 0x0006,
         WM_QUIT = 0x0012;
 
@@ -52,6 +54,8 @@ static class NativeMethods
     [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
     public static extern int SetWindowLongPtr64(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool SetWindowText(IntPtr hwnd, string lpString);
 
     [DllImport("user32.dll")]
     public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
@@ -61,4 +65,34 @@ static class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern void PostQuitMessage(int nExitCode);
+
+    public enum MSHCTX : uint
+    {
+        MSHCTX_LOCAL = 0,
+        MSHCTX_NOSHAREDMEM = 1,
+        MSHCTX_DIFFERENTMACHINE = 2,
+        MSHCTX_INPROC = 3,
+        MSHCTX_CROSSCTX = 4
+    };
+
+    [Flags]
+    public enum MSHLFLAGS : uint
+    {
+        MSHLFLAGS_NORMAL = 0,
+        MSHLFLAGS_TABLESTRONG = 1,
+        MSHLFLAGS_TABLEWEAK = 2,
+        MSHLFLAGS_NOPING = 4,
+        MSHLFLAGS_RESERVED1 = 8,
+        MSHLFLAGS_RESERVED2 = 16,
+        MSHLFLAGS_RESERVED3 = 32,
+        MSHLFLAGS_RESERVED4 = 64
+    };
+
+    [DllImport("ole32.dll")]
+    public static extern int CoMarshalInterface(IStream pStm, in Guid riid,
+        [MarshalAs(UnmanagedType.IUnknown)] object pUnk, MSHCTX dwDestContext, IntPtr pvDestContext, MSHLFLAGS mshlflags);
+
+    [DllImport("ole32.dll")]
+    public static extern int CoUnmarshalInterface(IStream pStm, in Guid riid,
+        [MarshalAs(UnmanagedType.IUnknown)] out object ppv);
 }

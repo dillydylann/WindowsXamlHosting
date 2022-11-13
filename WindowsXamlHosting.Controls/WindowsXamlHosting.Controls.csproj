@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -54,10 +55,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DarkModeAPI.cs" />
+    <Compile Include="ManagedIStream.cs" />
     <Compile Include="NativeMethods.cs" />
+    <Compile Include="NativeInterfaces.cs" />
     <Compile Include="XamlHostType.cs" />
     <Compile Include="XamlHostWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XamlProgram.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CoreWindowAPI\CoreWindowAPI.csproj">

@@ -4,7 +4,9 @@
 #pragma warning disable CS4014
 
 using System;
+using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.Core;
+using Windows.Foundation;
 using Windows.Graphics.Display;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
@@ -14,8 +16,21 @@ using WinForms = System.Windows.Forms;
 namespace Windows.UI.Xaml.Hosting.Controls
 {
     [global::System.ComponentModel.DesignerCategory("")]
-    public class XamlHostWindow : WinForms.Form
+    public class XamlHostWindow : WinForms.Form, ICoreApplicationView
     {
+        #region ICoreApplicationView Implementation
+        CoreWindow ICoreApplicationView.CoreWindow => coreWindow;
+
+        bool ICoreApplicationView.IsMain => false;
+        bool ICoreApplicationView.IsHosted => false;
+
+        event TypedEventHandler<CoreApplicationView, IActivatedEventArgs> ICoreApplicationView.Activated
+        {
+            add => coreApplicationViewActivated += value;
+            remove => coreApplicationViewActivated -= value;
+        }
+        #endregion
+
         [field: ThreadStatic]
         public static XamlHostWindow Current { get; private set; }
 
@@ -23,21 +38,28 @@ namespace Windows.UI.Xaml.Hosting.Controls
 
         private CoreWindow coreWindow;
         private CoreWindowEx coreWindowEx;
-        private CoreApplicationView coreApplicationView;
         private UISettings uiSettings;
         private DisplayInformation displayInformation;
 
         private XamlHostType xamlHostType;
-        private FrameworkView frameworkView;
+        private IFrameworkView_Modified frameworkView;
         private XamlPresenter xamlPresenter;
+
+        private TypedEventHandler<CoreApplicationView, IActivatedEventArgs> coreApplicationViewActivated;
 
         public XamlHostWindow(XamlHostType hostType = XamlHostType.Default, bool useCoreDispatcherAsSynchronizationContext = true)
         {
             xamlHostType = hostType;
 
-            coreWindow = CoreWindowFactory.Create("XamlHostWindow", 0, 0, ClientSize.Width, ClientSize.Height, 0, Handle);
+            coreWindow = CoreWindowFactory.Create(string.Empty, 0, 0, ClientSize.Width, ClientSize.Height, 0, Handle);
             coreWindowEx = (CoreWindowEx)coreWindow;
-            coreApplicationView = CoreApplicationEx.CreateNonImmersiveView();
+
+            if (Environment.OSVersion.Version >= new Version(10, 0, 17763, 0))
+            {
+                // Fixes the live visual tree toolbar
+                CoreApplicationEx.CreateNonImmersiveView();
+            }
+
             uiSettings = new UISettings();
             displayInformation = DisplayInformation.GetForCurrentView();
 
@@ -57,8 +79,8 @@ namespace Windows.UI.Xaml.Hosting.Controls
             switch (xamlHostType)
             {
                 case XamlHostType.FrameworkView:
-                    frameworkView = new FrameworkView();
-                    frameworkView.Initialize(coreApplicationView);
+                    frameworkView = (IFrameworkView_Modified)(object)new FrameworkView();
+                    frameworkView.Initialize(this);
                     frameworkView.SetWindow(coreWindow);
                     Window.Current.SetTransparentBackground(false);
                     break;
@@ -84,6 +106,11 @@ namespace Windows.UI.Xaml.Hosting.Controls
 
             Current = this;
             initialized = true;
+        }
+
+        public void ActivateApplication(IActivatedEventArgs args)
+        {
+            coreApplicationViewActivated?.Invoke(null, args);
         }
 
         public void RunMessageLoop()
@@ -143,6 +170,16 @@ namespace Windows.UI.Xaml.Hosting.Controls
         }
 
         public CoreDispatcher Dispatcher => initialized ? coreWindow.Dispatcher : null;
+
+        public override string Text
+        {
+            get => base.Text;
+            set
+            {
+                base.Text = value;
+                NativeMethods.SetWindowText(coreWindowEx.WindowHandle, base.Text);
+            }
+        }
 
         #region Theming
 
@@ -217,19 +254,37 @@ namespace Windows.UI.Xaml.Hosting.Controls
 
         #region Events
 
+        private void SendVisibilityChangedMessage(bool visible)
+        {
+            if (coreWindow.Visible != visible)
+            {
+                NativeMethods.SendMessage(coreWindowEx.WindowHandle, 0x0270, IntPtr.Zero, (IntPtr)(visible ? 1 : 0));
+            }
+        }
+
+        protected override void OnMove(EventArgs e)
+        {
+            if (!initialized)
+                return;
+
+            NativeMethods.SendMessage(coreWindowEx.WindowHandle, NativeMethods.WM_MOVE, IntPtr.Zero, IntPtr.Zero);
+            base.OnMove(e);
+        }
+
         protected override void OnResize(EventArgs e)
         {
-            if (initialized)
+            if (initialized && WindowState != WinForms.FormWindowState.Minimized)
             {
                 Window.Current.MoveWindow(0, 0, (int)(ClientSize.Width / (displayInformation.LogicalDpi / 96)), (int)(ClientSize.Height / (displayInformation.LogicalDpi / 96)));
             }
 
+            SendVisibilityChangedMessage(WindowState != WinForms.FormWindowState.Minimized);
             base.OnResize(e);
         }
 
         protected override void OnActivated(EventArgs e)
         {
-            if (xamlPresenter != null)
+            if (uiSettings != null)
             {
                 UpdatePresenterTheme(); // Fallback for when automatic change fails
             }
@@ -244,6 +299,15 @@ namespace Windows.UI.Xaml.Hosting.Controls
 
             coreWindow.Close();
             base.OnFormClosed(e);
+        }
+
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            if (!initialized)
+                return;
+
+            SendVisibilityChangedMessage(Visible);
+            base.OnVisibleChanged(e);
         }
 
         protected override void WndProc(ref WinForms.Message m)
