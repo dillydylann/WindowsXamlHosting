@@ -1,0 +1,234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:desktop2="http://schemas.microsoft.com/appx/manifest/desktop/windows10/2"
+  xmlns:desktop3="http://schemas.microsoft.com/appx/manifest/desktop/windows10/3"
+  xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+  xmlns:desktop5="http://schemas.microsoft.com/appx/manifest/desktop/windows10/5"
+  xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
+  xmlns:desktop7="http://schemas.microsoft.com/appx/manifest/desktop/windows10/7"
+  xmlns:desktop8="http://schemas.microsoft.com/appx/manifest/desktop/windows10/8"
+  xmlns:desktop9="http://schemas.microsoft.com/appx/manifest/desktop/windows10/9"
+  xmlns:desktop10="http://schemas.microsoft.com/appx/manifest/desktop/windows10/10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:uap4="http://schemas.microsoft.com/appx/manifest/uap/windows10/4"
+  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+  xmlns:uap6="http://schemas.microsoft.com/appx/manifest/uap/windows10/6"
+  xmlns:uap7="http://schemas.microsoft.com/appx/manifest/uap/windows10/7"
+  xmlns:uap8="http://schemas.microsoft.com/appx/manifest/uap/windows10/8"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+  xmlns:uap11="http://schemas.microsoft.com/appx/manifest/uap/windows10/11"
+  xmlns:uap12="http://schemas.microsoft.com/appx/manifest/uap/windows10/12"
+  xmlns:uap13="http://schemas.microsoft.com/appx/manifest/uap/windows10/13"
+  IgnorableNamespaces="rescap uap uap4 uap5">
+
+  <Identity
+    Name="DylanBriedis.WindowsXamlHostingTest"
+    Publisher="CN=Dylan"
+    Version="1.0.0.0" />
+
+  <Properties>
+    <DisplayName>Windows Xaml Hosting Test</DisplayName>
+    <PublisherDisplayName>Dylan Briedis</PublisherDisplayName>
+    <Logo>Images\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+
+  <Applications>
+
+    <Application Id="UWPApp" Executable="WindowsXamlHostingUWPTest.exe" EntryPoint="WindowsXamlHostingUWPTest.UWPApp">
+
+      <uap:VisualElements DisplayName="Windows Xaml Hosting Test (UWP)" Description="UWP" BackgroundColor="transparent"
+                          Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+
+      <Extensions>
+
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="txt">
+            <uap:SupportedFileTypes>
+              <uap:FileType>.txt</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="xamltest-uwp" />
+        </uap:Extension>
+
+        <uap:Extension Category="windows.shareTarget">
+          <uap:ShareTarget>
+            <uap:SupportedFileTypes>
+              <uap:SupportsAnyFileType />
+            </uap:SupportedFileTypes>
+            <uap:DataFormat>Text</uap:DataFormat>
+            <uap:DataFormat>Uri</uap:DataFormat>
+            <uap:DataFormat>Bitmap</uap:DataFormat>
+            <uap:DataFormat>Html</uap:DataFormat>
+            <uap:DataFormat>http://schema.org/Book</uap:DataFormat>
+          </uap:ShareTarget>
+        </uap:Extension>
+
+        <uap:Extension Category="windows.fileOpenPicker">
+          <uap:FileOpenPicker>
+            <uap:SupportedFileTypes>
+              <uap:SupportsAnyFileType />
+            </uap:SupportedFileTypes>
+          </uap:FileOpenPicker>
+        </uap:Extension>
+
+        <uap:Extension Category="windows.fileSavePicker">
+          <uap:FileSavePicker>
+            <uap:SupportedFileTypes>
+              <uap:SupportsAnyFileType />
+            </uap:SupportedFileTypes>
+          </uap:FileSavePicker>
+        </uap:Extension>
+
+        <uap:Extension Category="windows.appointmentsProvider">
+          <uap:AppointmentsProvider>
+            <uap:AppointmentsProviderLaunchActions>
+              <uap:LaunchAction Verb="addAppointment" />
+              <uap:LaunchAction Verb="removeAppointment" />
+              <uap:LaunchAction Verb="replaceAppointment" />
+              <uap:LaunchAction Verb="showTimeFrame" />
+              <uap:LaunchAction Verb="showAppointmentDetails" />
+            </uap:AppointmentsProviderLaunchActions>
+          </uap:AppointmentsProvider>
+        </uap:Extension>
+
+        <uap4:Extension Category="windows.contactPanel">
+          <uap4:ContactPanel SupportsUnknownContacts="true" />
+        </uap4:Extension>
+
+        <uap5:Extension Category="windows.startupTask">
+          <uap5:StartupTask DisplayName="Windows Xaml Hosting Test Startup Task (UWP)"
+                               TaskId="WindowsXamlHostingUWPStartupId" Enabled="false" />
+        </uap5:Extension>
+
+        <uap5:Extension Category="windows.appExecutionAlias">
+          <uap5:AppExecutionAlias>
+            <uap5:ExecutionAlias Alias="xamltestuwp.exe" />
+          </uap5:AppExecutionAlias>
+        </uap5:Extension>
+
+        <uap:Extension Category="windows.cachedFileUpdater" />
+        <uap:Extension Category="windows.cameraSettings" />
+        <uap:Extension Category="windows.accountPictureProvider" />
+        <uap:Extension Category="windows.printTaskSettings" />
+        <uap:Extension Category="windows.lockScreenCall" />
+        <uap:Extension Category="windows.lockScreen" />
+        <uap:Extension Category="windows.aboveLockScreen" />
+        <uap:Extension Category="windows.personalAssistantLaunch" />
+        
+      </Extensions>
+
+    </Application>
+    
+    <Application Id="DesktopApp" Executable="WindowsXamlHostingUWPTest.exe" EntryPoint="Windows.FullTrustApplication">
+
+      <uap:VisualElements DisplayName="Windows Xaml Hosting Test (Desktop)" Description="Desktop" BackgroundColor="transparent"
+                          Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+
+      <Extensions>
+
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="xml">
+            <uap:SupportedFileTypes>
+              <uap:FileType>.xml</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="xamltest-desktop" />
+        </uap:Extension>
+
+        <uap:Extension Category="windows.shareTarget">
+          <uap:ShareTarget>
+            <uap:SupportedFileTypes>
+              <uap:SupportsAnyFileType />
+            </uap:SupportedFileTypes>
+            <uap:DataFormat>Text</uap:DataFormat>
+            <uap:DataFormat>Uri</uap:DataFormat>
+            <uap:DataFormat>Bitmap</uap:DataFormat>
+            <uap:DataFormat>Html</uap:DataFormat>
+            <uap:DataFormat>http://schema.org/Book</uap:DataFormat>
+          </uap:ShareTarget>
+        </uap:Extension>
+
+        <uap5:Extension Category="windows.startupTask">
+          <uap5:StartupTask DisplayName="Windows Xaml Hosting Test Startup Task (Desktop)"
+                               TaskId="WindowsXamlHostingDesktopStartupId" Enabled="false" />
+        </uap5:Extension>
+
+        <uap5:Extension Category="windows.appExecutionAlias">
+          <uap5:AppExecutionAlias>
+            <uap5:ExecutionAlias Alias="xamltestdesktop.exe" />
+          </uap5:AppExecutionAlias>
+        </uap5:Extension>
+        
+        <uap:Extension Category="windows.lockScreen" />
+        <uap:Extension Category="windows.aboveLockScreen" />
+
+    </Extensions>
+
+    </Application>
+
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="allJoyn"/>
+    <Capability Name="internetClient"/>
+    <Capability Name="internetClientServer"/>
+    <Capability Name="privateNetworkClientServer"/>
+    <rescap:Capability Name="runFullTrust" />
+    <uap:Capability Name="appointments"/>
+    <uap:Capability Name="blockedChatMessages"/>
+    <uap:Capability Name="chat"/>
+    <uap:Capability Name="contacts"/>
+    <uap:Capability Name="musicLibrary"/>
+    <uap:Capability Name="objects3D"/>
+    <uap:Capability Name="phoneCall"/>
+    <uap:Capability Name="picturesLibrary"/>
+    <uap:Capability Name="removableStorage"/>
+    <uap:Capability Name="sharedUserCertificates"/>
+    <uap:Capability Name="userAccountInformation"/>
+    <uap:Capability Name="videosLibrary"/>
+    <uap:Capability Name="voipCall"/>
+    <uap2:Capability Name="phoneCallHistoryPublic"/>
+    <uap2:Capability Name="spatialPerception"/>
+    <uap3:Capability Name="backgroundMediaPlayback"/>
+    <uap3:Capability Name="remoteSystem"/>
+    <uap3:Capability Name="userNotificationListener"/>
+    <uap4:Capability Name="offlineMapsManagement"/>
+    <uap4:Capability Name="userDataTasks"/>
+    <uap6:Capability Name="graphicsCapture"/>
+    <DeviceCapability Name="bluetooth"/>
+    <DeviceCapability Name="gazeInput"/>
+    <DeviceCapability Name="location"/>
+    <DeviceCapability Name="lowLevel"/>
+    <DeviceCapability Name="microphone"/>
+    <DeviceCapability Name="pointOfService"/>
+    <DeviceCapability Name="proximity"/>
+    <DeviceCapability Name="webcam"/>
+  </Capabilities>
+  
+</Package>

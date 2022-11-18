@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32526.322
@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		WindowsXamlHosting.snk = WindowsXamlHosting.snk
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsXamlHostingUWPTest", "WindowsXamlHostingUWPTest\WindowsXamlHostingUWPTest.csproj", "{C61C02B5-9DD1-4268-9A13-7EE334848F8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,6 +137,27 @@ Global
 		{AD80B88A-D2EA-4DB5-91F5-BCD42E08B59C}.Release|x64.Build.0 = Release|x64
 		{AD80B88A-D2EA-4DB5-91F5-BCD42E08B59C}.Release|x86.ActiveCfg = Release|Any CPU
 		{AD80B88A-D2EA-4DB5-91F5-BCD42E08B59C}.Release|x86.Build.0 = Release|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|ARM.Build.0 = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|x64.Build.0 = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Debug|x86.Build.0 = Debug|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Release|ARM.ActiveCfg = Release|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Release|ARM.Build.0 = Release|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Release|ARM64.Build.0 = Release|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Release|x64.ActiveCfg = Release|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Release|x64.Build.0 = Release|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Release|x86.ActiveCfg = Release|Any CPU
+		{C61C02B5-9DD1-4268-9A13-7EE334848F8D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
