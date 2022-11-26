@@ -1,9 +1,12 @@
-﻿using Windows.ApplicationModel;
+﻿using System;
+using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.Background;
 using Windows.UI.Core;
+using Windows.UI.WindowManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Hosting;
 using Windows.UI.Xaml.Hosting.Controls;
 
 namespace WindowsXamlHostingUWPTest
@@ -45,6 +48,10 @@ namespace WindowsXamlHostingUWPTest
                 var contentDialogTextBoxTestBtn = new Button { Content = "Content dialog text box test" };
                 contentDialogTextBoxTestBtn.Click += ContentDialogTextBoxTestBtn_Click;
                 buttonBar.Children.Add(contentDialogTextBoxTestBtn);
+
+                var spawnAppWindowTestBtn = new Button { Content = "Spawn AppWindow" };
+                spawnAppWindowTestBtn.Click += SpawnAppWindowTestBtn_Click;
+                buttonBar.Children.Add(spawnAppWindowTestBtn);
             }
 
             args.Window.Content = new Grid()
@@ -95,6 +102,27 @@ namespace WindowsXamlHostingUWPTest
                 Content = tb,
                 CloseButtonText = "Close",
             }.ShowAsync();
+        }
+
+        private async void SpawnAppWindowTestBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var appWindow = await AppWindow.TryCreateAsync();
+                var button = new Button { Content = "Hello from AppWindow!" };
+                button.Click += (s, e) => _ = appWindow.CloseAsync();
+                ElementCompositionPreview.SetAppWindowContent(appWindow, button);
+                await appWindow.TryShowAsync();
+            }
+            catch (Exception ex)
+            {
+                _ = new ContentDialog()
+                {
+                    Title = "Unable to spawn AppWindow",
+                    Content = ex.ToString(),
+                    CloseButtonText = "Close",
+                }.ShowAsync();
+            }
         }
 
         private void App_EnteredBackground(object sender, EnteredBackgroundEventArgs e)
@@ -221,6 +249,6 @@ namespace WindowsXamlHostingUWPTest
 
     internal static class Program
     {
-        static void Main(string[] args) => new XamlProgram().Run<DesktopApp, UWPApp>(args);
+        static void Main() => new XamlProgram().Run<DesktopApp, UWPApp>();
     }
 }
