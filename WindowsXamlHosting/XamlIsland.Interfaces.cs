@@ -4,11 +4,12 @@
 using System;
 using System.Runtime.InteropServices;
 using Windows.Foundation;
+using Windows.UI.Xaml.Controls;
 
 namespace Windows.UI.Xaml.Hosting
 {
     [InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
-    [Guid("412b49d7-b8b7-416a-b49b-57f9edbef991")]
+    [ComImport, Guid("412b49d7-b8b7-416a-b49b-57f9edbef991")]
     internal interface IXamlIsland
     {
         object CompositionIsland { [return: MarshalAs(UnmanagedType.IInspectable)] get; }
@@ -20,7 +21,7 @@ namespace Windows.UI.Xaml.Hosting
     }
 
     [InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
-    [Guid("3ead2336-b073-456f-bcaf-82587eb63487")]
+    [ComImport, Guid("3ead2336-b073-456f-bcaf-82587eb63487")]
     internal interface IXamlIslandStatics
     {
         IXamlIsland GetIslandFromElement(DependencyObject element);

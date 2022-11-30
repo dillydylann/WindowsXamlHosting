@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using MS.Internal.IO.Packaging;
@@ -11,7 +12,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Hosting.Controls;
-using static NativeMethods;
+using static WindowsXamlHostingControls.NativeMethods;
 
 namespace Windows.UI.Xaml
 {
@@ -54,14 +55,14 @@ namespace Windows.UI.Xaml
             SingleInstance = singleInstance;
         }
 
-        public void Run<TDesktopApp, TUWPApp>(string[] args = null)
+        public void Run<TDesktopApp, TUWPApp>()
             where TDesktopApp : Application, new()
             where TUWPApp : Application, new()
         {
-            args ??= Environment.GetCommandLineArgs();
+            var args = Environment.GetCommandLineArgs();
 
             // Auto-detect which mode to use
-            if (args.Length > 0 && args[0].StartsWith("-ServerName:"))
+            if (args.Length > 1 && args[1].StartsWith("-ServerName:"))
             {
                 RunUWP<TUWPApp>();
             }
@@ -115,7 +116,7 @@ namespace Windows.UI.Xaml
 
                     // Marshal the activation args and send it to the instance
                     Marshal.ThrowExceptionForHR(CoMarshalInterface(new ManagedIStream(activationPipeClient), typeof(IActivatedEventArgs).GUID,
-                        AppInstance.GetActivatedEventArgs(), MSHCTX.MSHCTX_LOCAL, IntPtr.Zero, MSHLFLAGS.MSHLFLAGS_NORMAL));
+                        GetActivatedEventArgs(), MSHCTX.MSHCTX_LOCAL, IntPtr.Zero, MSHLFLAGS.MSHLFLAGS_NORMAL));
 
                     activationPipeClient.WaitForPipeDrain();
                 }
@@ -144,18 +145,39 @@ namespace Windows.UI.Xaml
             if (hostWindow != null)
             {
                 desktopDispatcher = hostWindow.Dispatcher;
-                Activated.Invoke(this, AppInstance.GetActivatedEventArgs());
+                Activated.Invoke(this, GetActivatedEventArgs());
                 hostWindow.RunMessageLoop();
             }
             else if (Window.Current != null)
             {
                 desktopDispatcher = Window.Current.Dispatcher;
-                Activated.Invoke(this, AppInstance.GetActivatedEventArgs());
+                Activated.Invoke(this, GetActivatedEventArgs());
                 desktopDispatcher.ProcessEvents(CoreProcessEventsOption.ProcessUntilQuit);
             }
             else
             {
                 // App hasn't created the main window, so just exit...
+            }
+        }
+
+        private IActivatedEventArgs GetActivatedEventArgs()
+        {
+            // Are we running in packaged mode?
+            bool inPackagedMode = false;
+            try
+            {
+                _ = Package.Current;
+                inPackagedMode = true;
+            }
+            catch { }
+
+            if (inPackagedMode)
+            {
+                return AppInstance.GetActivatedEventArgs();
+            }
+            else
+            {
+                return new NormalLaunchActivatedEventArgs(string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
             }
         }
 

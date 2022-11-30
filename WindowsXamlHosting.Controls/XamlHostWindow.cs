@@ -10,6 +10,7 @@ using Windows.Foundation;
 using Windows.Graphics.Display;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
+using WindowsXamlHostingControls;
 using Drawing = System.Drawing;
 using WinForms = System.Windows.Forms;
 
@@ -21,7 +22,7 @@ namespace Windows.UI.Xaml.Hosting.Controls
         #region ICoreApplicationView Implementation
         CoreWindow ICoreApplicationView.CoreWindow => coreWindow;
 
-        bool ICoreApplicationView.IsMain => false;
+        bool ICoreApplicationView.IsMain => xamlHostsCount == 0;
         bool ICoreApplicationView.IsHosted => false;
 
         event TypedEventHandler<CoreApplicationView, IActivatedEventArgs> ICoreApplicationView.Activated
@@ -34,11 +35,12 @@ namespace Windows.UI.Xaml.Hosting.Controls
         [field: ThreadStatic]
         public static XamlHostWindow Current { get; private set; }
 
+        private static int xamlHostsCount = 0;
+
         private bool initialized = false;
 
         private CoreWindow coreWindow;
         private CoreWindowEx coreWindowEx;
-        private UISettings uiSettings;
         private DisplayInformation displayInformation;
 
         private XamlHostType xamlHostType;
@@ -60,7 +62,6 @@ namespace Windows.UI.Xaml.Hosting.Controls
                 CoreApplicationEx.CreateNonImmersiveView();
             }
 
-            uiSettings = new UISettings();
             displayInformation = DisplayInformation.GetForCurrentView();
 
             if (useCoreDispatcherAsSynchronizationContext)
@@ -96,16 +97,18 @@ namespace Windows.UI.Xaml.Hosting.Controls
             coreWindowEx.CoreWindowResizeManager.ShouldWaitForLayoutCompletion = true;
             HostBackdropHelper.EnableHostBackdropBrush(Handle);
 
-            UpdatePresenterTheme();
-
-            if (xamlPresenter != null)
-            {
-                // Switch the presenter theme when the system theme changes
-                uiSettings.ColorValuesChanged += (s, e) => coreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, UpdatePresenterTheme);
-            }
-
             Current = this;
+            xamlHostsCount++;
             initialized = true;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            initialized = false;
+            xamlHostsCount--;
+            Current = null;
+
+            base.Dispose(disposing);
         }
 
         public void ActivateApplication(IActivatedEventArgs args)
@@ -157,6 +160,11 @@ namespace Windows.UI.Xaml.Hosting.Controls
                 if (!initialized)
                     return;
 
+                if (Content is FrameworkElement contentElement)
+                {
+                    contentElement.ActualThemeChanged -= Element_ActualThemeChanged;
+                }
+
                 switch (xamlHostType)
                 {
                     case XamlHostType.FrameworkView:
@@ -166,7 +174,18 @@ namespace Windows.UI.Xaml.Hosting.Controls
                         xamlPresenter.Content = value;
                         break;
                 }
+
+                if (value is FrameworkElement valueElement)
+                {
+                    valueElement.ActualThemeChanged += Element_ActualThemeChanged;
+                    UpdateWindowTheme();
+                }
             }
+        }
+
+        private void Element_ActualThemeChanged(FrameworkElement sender, object args)
+        {
+            UpdateWindowTheme();
         }
 
         public CoreDispatcher Dispatcher => initialized ? coreWindow.Dispatcher : null;
@@ -181,76 +200,13 @@ namespace Windows.UI.Xaml.Hosting.Controls
             }
         }
 
-        #region Theming
-
-        public bool IsUsingSystemTheme { get; set; } = true;
-
-        void SetPresenterTheme(ApplicationTheme theme)
+        private void UpdateWindowTheme()
         {
-            if (theme == ApplicationTheme.Dark)
+            if (Content is FrameworkElement contentElement)
             {
-                BackColor = Drawing.Color.Black;
-                DarkModeAPI.SetWindowDarkMode(Handle, true);
-
-                try
-                {
-                    if (frameworkView != null)
-                        Application.Current.RequestedTheme = ApplicationTheme.Dark;
-                    if (xamlPresenter != null)
-                        xamlPresenter.RequestedTheme = ApplicationTheme.Dark;
-                }
-                catch { }
-            }
-            else
-            {
-                BackColor = Drawing.Color.White;
-                DarkModeAPI.SetWindowDarkMode(Handle, false);
-
-                try
-                {
-                    if (frameworkView != null)
-                        Application.Current.RequestedTheme = ApplicationTheme.Light;
-                    if (xamlPresenter != null)
-                        xamlPresenter.RequestedTheme = ApplicationTheme.Light;
-                }
-                catch { }
+                DarkModeAPI.SetWindowDarkMode(Handle, contentElement.ActualTheme == ElementTheme.Dark);
             }
         }
-
-        void UpdatePresenterTheme()
-        {
-            if (!IsUsingSystemTheme)
-                return;
-
-            if (uiSettings.GetColorValue(UIColorType.Background) == Colors.Black) // Dark theme
-            {
-                SetPresenterTheme(ApplicationTheme.Dark);
-            }
-            else
-            {
-                SetPresenterTheme(ApplicationTheme.Light);
-            }
-        }
-
-        public ApplicationTheme RequestedTheme
-        {
-            get
-            {
-                if (frameworkView != null)
-                    return Application.Current.RequestedTheme;
-                else if (xamlPresenter != null)
-                    return xamlPresenter.RequestedTheme;
-                else
-                    return 0;
-            }
-            set
-            {
-                IsUsingSystemTheme = false;
-                SetPresenterTheme(value);
-            }
-        }
-
-        #endregion
 
         #region Events
 
@@ -280,16 +236,6 @@ namespace Windows.UI.Xaml.Hosting.Controls
 
             SendVisibilityChangedMessage(WindowState != WinForms.FormWindowState.Minimized);
             base.OnResize(e);
-        }
-
-        protected override void OnActivated(EventArgs e)
-        {
-            if (uiSettings != null)
-            {
-                UpdatePresenterTheme(); // Fallback for when automatic change fails
-            }
-
-            base.OnActivated(e);
         }
 
         protected override void OnFormClosed(WinForms.FormClosedEventArgs e)

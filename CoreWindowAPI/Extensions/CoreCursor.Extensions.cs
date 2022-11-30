@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 namespace Windows.UI.Core
 {
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("491d7888-4df3-41a1-bf52-49378b53f1b1")]
+    [ComImport, Guid("491d7888-4df3-41a1-bf52-49378b53f1b1")]
     internal interface IPrivateCursor
     {
         IntPtr HCursor { get; }

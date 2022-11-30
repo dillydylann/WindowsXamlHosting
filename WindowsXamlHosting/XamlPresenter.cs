@@ -2,11 +2,11 @@
 // Copyright (c) 2020 Dylan Briedis <dylan@dylanbriedis.com>
 
 using System;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.UI.Core;
+using WindowsXamlHosting;
 
 namespace Windows.UI.Xaml.Hosting
 {
@@ -22,52 +22,80 @@ namespace Windows.UI.Xaml.Hosting
 
         #region Instance methods
 
-        internal XamlPresenter(IXamlPresenter p)
+        internal XamlPresenter(object p)
         {
-            presenter = p;
+            presenter = (IXamlPresenter)p;
             presenter2 = (IXamlPresenter2)p;
             presenterPrivate = (IXamlPresenterPrivate)p;
-        }
-        ~XamlPresenter()
-        {
-            presenter = null;
-            presenter2 = null;
-            presenterPrivate = null;
         }
 
         internal IXamlPresenter presenter;
         internal IXamlPresenter2 presenter2;
         internal IXamlPresenterPrivate presenterPrivate;
 
+
         /// <summary>
         /// Gets or sets the content to host in the presenter.
         /// </summary>
-        public UIElement Content { get => presenter.Content; set => presenter.Content = value; }
+        public UIElement Content
+        {
+            get => presenter.Content;
+            set => presenter.Content = value;
+        }
 
         public void SetAtlasSizeHint(int width, int height) => presenter.SetAtlasSizeHint(width, height);
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void InitializePresenter() => presenter.InitializePresenter();
 
-
-        public ResourceDictionary Resources { get => presenter2.Resources; set => presenter2.Resources = value; }
+        public ResourceDictionary Resources
+        {
+            get => presenter2.Resources;
+            set => presenter2.Resources = value;
+        }
 
         public Rect Bounds => presenter2.Bounds;
 
-        public ApplicationTheme RequestedTheme { get => presenter2.RequestedTheme; set => presenter2.RequestedTheme = value; }
+        public ApplicationTheme RequestedTheme
+        {
+            get => presenter2.RequestedTheme;
+            set => presenter2.RequestedTheme = value;
+        }
 
-        public bool TransparentBackground { get => presenter2.TransparentBackground; set => presenter2.TransparentBackground = value; }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void InitializePresenter(ApplicationTheme theme) => presenter2.InitializePresenterWithTheme(theme);
+        public bool TransparentBackground
+        {
+            get => presenter2.TransparentBackground;
+            set => presenter2.TransparentBackground = value;
+        }
 
         public void SetCaretWidth(int width) => presenter2.SetCaretWidth(width);
+
 
         public void SetViewActivityState(bool active, bool allowDWMSnapshot) => presenterPrivate.SetViewActivityState(active, allowDWMSnapshot);
 
 
-        public override bool Equals(object obj) => obj is XamlPresenter p ? presenter == p.presenter : false;
-        public override int GetHashCode() => presenter.GetHashCode();
+        #region Equality
+
+        public override bool Equals(object obj)
+        {
+            return obj is XamlPresenter presenter &&
+                   EqualityComparer<IXamlPresenter>.Default.Equals(this.presenter, presenter.presenter);
+        }
+
+        public override int GetHashCode()
+        {
+            return 281200083 + EqualityComparer<IXamlPresenter>.Default.GetHashCode(presenter);
+        }
+
+        public static bool operator ==(XamlPresenter left, XamlPresenter right)
+        {
+            return EqualityComparer<XamlPresenter>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(XamlPresenter left, XamlPresenter right)
+        {
+            return !(left == right);
+        }
+
+        #endregion
 
         #endregion
 
@@ -82,8 +110,6 @@ namespace Windows.UI.Xaml.Hosting
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate void InitializePresenterFunc(IntPtr ptr);
-
-        public static bool AutoInitializePresenter { get; set; } = true;
 
         private static IXamlPresenter InitializeThePresenter(IntPtr p)
         {
@@ -112,14 +138,8 @@ namespace Windows.UI.Xaml.Hosting
         /// <returns>The created presenter.</returns>
         public static XamlPresenter CreateFromHwnd(IntPtr hwnd)
         {
-            NativeMethods.RoGetActivationFactory(ActivatableClassName, typeof(IXamlPresenterStatics).GUID, out IActivationFactory factory);
-            IXamlPresenterStatics presenterFactory = (IXamlPresenterStatics)factory;
-            IntPtr presenterPtr = presenterFactory.CreateFromHwnd(hwnd.ToInt32());
-
-            if (AutoInitializePresenter)
-                return new XamlPresenter(InitializeThePresenter(presenterPtr));
-            else
-                return new XamlPresenter((IXamlPresenter)Marshal.GetObjectForIUnknown(presenterPtr));
+            var factory = (IXamlPresenterStatics)NativeMethods.RoGetActivationFactory(ActivatableClassName, typeof(IXamlPresenterStatics).GUID);
+            return new XamlPresenter(InitializeThePresenter(factory.CreateFromHwnd(hwnd.ToInt32())));
         }
 
         /// <summary>
@@ -129,10 +149,8 @@ namespace Windows.UI.Xaml.Hosting
         {
             get
             {
-                NativeMethods.RoGetActivationFactory(ActivatableClassName, typeof(IXamlPresenterStatics2).GUID, out IActivationFactory factory);
-                IXamlPresenterStatics2 presenterFactory = (IXamlPresenterStatics2)factory;
-
-                return new XamlPresenter(presenterFactory.Current);
+                var factory = (IXamlPresenterStatics2)NativeMethods.RoGetActivationFactory(ActivatableClassName, typeof(IXamlPresenterStatics2).GUID);
+                return new XamlPresenter(factory.Current);
             }
         }
 
@@ -143,14 +161,8 @@ namespace Windows.UI.Xaml.Hosting
         /// <returns>The created presenter.</returns>
         public static XamlPresenter CreateFromCoreWindow(CoreWindow coreWindow)
         {
-            NativeMethods.RoGetActivationFactory(ActivatableClassName, typeof(IXamlPresenterStatics3).GUID, out IActivationFactory factory);
-            IXamlPresenterStatics3 presenterFactory = (IXamlPresenterStatics3)factory;
-            IntPtr presenterPtr = presenterFactory.CreateFromCoreWindow(coreWindow);
-
-            if (AutoInitializePresenter)
-                return new XamlPresenter(InitializeThePresenter(presenterPtr));
-            else
-                return new XamlPresenter((IXamlPresenter)Marshal.GetObjectForIUnknown(presenterPtr));
+            var factory = (IXamlPresenterStatics3)NativeMethods.RoGetActivationFactory(ActivatableClassName, typeof(IXamlPresenterStatics3).GUID);
+            return new XamlPresenter(InitializeThePresenter(factory.CreateFromCoreWindow(coreWindow)));
         }
 
         #endregion

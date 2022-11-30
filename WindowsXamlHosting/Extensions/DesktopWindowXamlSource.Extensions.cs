@@ -1,4 +1,4 @@
-﻿// Part of the internals of the Windows XAML Hosting API
+﻿    // Part of the internals of the Windows XAML Hosting API
 // Copyright (c) 2020 Dylan Briedis <dylan@dylanbriedis.com>
 
 using System;
@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 namespace Windows.UI.Xaml.Hosting
 {
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("3cbcf1bf-2f76-4e9c-96ab-e84b37972554")]
+    [ComImport, Guid("3cbcf1bf-2f76-4e9c-96ab-e84b37972554")]
     public interface IDesktopWindowXamlSourceNative
     {
         void AttachToWindow(IntPtr parentWnd);
@@ -16,7 +16,7 @@ namespace Windows.UI.Xaml.Hosting
     }
 
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("e3dcd8c7-3057-4692-99c3-7b7720afda31")]
+    [ComImport, Guid("e3dcd8c7-3057-4692-99c3-7b7720afda31")]
     public interface IDesktopWindowXamlSourceNative2
     {
         void AttachToWindow(IntPtr parentWnd);
@@ -32,13 +32,21 @@ namespace Windows.UI.Xaml.Hosting
     public static class DesktopWindowXamlSourceExtensions
     {
         public static void AttachToWindow(this DesktopWindowXamlSource source, IntPtr parentWnd)
-            => ((IDesktopWindowXamlSourceNative)source).AttachToWindow(parentWnd);
+        {
+            var desktopWindowXamlSourceNative = (IDesktopWindowXamlSourceNative)source;
+            desktopWindowXamlSourceNative.AttachToWindow(parentWnd);
+        }
 
         public static IntPtr GetWindowHandle(this DesktopWindowXamlSource source)
-            => ((IDesktopWindowXamlSourceNative)source).WindowHandle;
-
+        {
+            var desktopWindowXamlSourceNative = (IDesktopWindowXamlSourceNative)source;
+            return desktopWindowXamlSourceNative.WindowHandle;
+        }
 
         public static void PreTranslateMessage(this DesktopWindowXamlSource source, IntPtr message)
-            => ((IDesktopWindowXamlSourceNative2)source).PreTranslateMessage(message);
+        {
+            var desktopWindowXamlSourceNative2 = (IDesktopWindowXamlSourceNative2)source;
+            desktopWindowXamlSourceNative2.PreTranslateMessage(message);
+        }
     }
 }

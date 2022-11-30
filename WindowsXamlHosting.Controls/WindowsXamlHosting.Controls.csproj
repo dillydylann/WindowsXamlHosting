@@ -58,9 +58,11 @@
     <Compile Include="ManagedIStream.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="NativeInterfaces.cs" />
+    <Compile Include="NormalLaunchActivatedEventArgs.cs" />
     <Compile Include="XamlHostType.cs" />
     <Compile Include="XamlHostWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XamlIslandControl.cs" />
     <Compile Include="XamlProgram.cs" />
   </ItemGroup>
   <ItemGroup>

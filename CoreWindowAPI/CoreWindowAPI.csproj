@@ -3,9 +3,9 @@
 	<PropertyGroup>
 		<TargetFrameworks>net46;netcoreapp3.1</TargetFrameworks>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="Exists('..\WindowsXamlHosting.snk')">
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="Exists('..\WindowsXamlHosting.snk')">
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>..\WindowsXamlHosting.snk</AssemblyOriginatorKeyFile>
 	</PropertyGroup>

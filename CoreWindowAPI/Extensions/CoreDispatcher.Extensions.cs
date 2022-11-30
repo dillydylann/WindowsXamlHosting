@@ -11,14 +11,14 @@ using Windows.System;
 namespace Windows.UI.Core
 {
     [InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
-    [Guid("f5f84c8f-cfd0-4cd6-b66b-c5d26ff1689d")]
+    [ComImport, Guid("f5f84c8f-cfd0-4cd6-b66b-c5d26ff1689d")]
     internal interface IMessageDispatcher
     {
         void PumpMessages();
     }
 
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("34fff979-bd36-4bb1-82d2-785a605b81fb")]
+    [ComImport, Guid("34fff979-bd36-4bb1-82d2-785a605b81fb")]
     internal interface IInternalDispatcher
     {
         void WaitAndProcessMessages(IntPtr hEventWait);
@@ -26,7 +26,7 @@ namespace Windows.UI.Core
     }
 
     [InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
-    [Guid("c560466f-67d6-4b40-a1f3-15675e6984ec")]
+    [ComImport, Guid("c560466f-67d6-4b40-a1f3-15675e6984ec")]
     internal interface IInternalDispatcher2
     {
         DispatcherQueue DispatcherQueue { get; }
@@ -73,7 +73,7 @@ namespace Windows.UI.Core
     }
 
     [InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
-    [Guid("4b4d0861-d718-4f7c-bec7-735c065f7c73")]
+    [ComImport, Guid("4b4d0861-d718-4f7c-bec7-735c065f7c73")]
     internal interface IInternalCoreDispatcherStatic
     {
         CoreDispatcher GetForCurrentThread();

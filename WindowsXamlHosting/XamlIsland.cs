@@ -2,10 +2,10 @@
 // Copyright (c) 2020 Dylan Briedis <dylan@dylanbriedis.com>
 
 using System;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Collections.Generic;
 using Windows.Foundation;
 using Windows.UI.Xaml.Controls;
+using WindowsXamlHosting;
 
 namespace Windows.UI.Xaml.Hosting
 {
@@ -15,58 +15,77 @@ namespace Windows.UI.Xaml.Hosting
 
         #region Instance methods
 
-        internal XamlIsland(IXamlIsland i)
+        public XamlIsland()
+            : this(NativeMethods.RoActivateInstance(ActivatableClassName)) { }
+
+        internal XamlIsland(object obj)
         {
-            island = i;
-        }
-        internal XamlIsland(Panel p)
-        {
-            Panel = p;
-            island = (IXamlIsland)Panel;
-        }
-        ~XamlIsland()
-        {
-            Panel = null;
-            island = null;
+            island = (IXamlIsland)obj;
         }
 
-        public Panel Panel { get; private set; }
         internal IXamlIsland island;
 
+        public Panel Panel { get; private set; }
 
-        public object CompositionIsland { get => island.CompositionIsland; }
 
-        public UIElement Content { get => island.Content; set => island.Content = value; }
+        public object CompositionIsland => island.CompositionIsland;
 
-        public object FocusController { get => island.FocusController; }
+        public UIElement Content
+        {
+            get => island.Content;
+            set => island.Content = value;
+        }
 
-        public object MaterialProperties { get => island.MaterialProperties; set => island.MaterialProperties = value; }
+        public object FocusController => island.FocusController;
+
+        public object MaterialProperties
+        {
+            get => island.MaterialProperties;
+            set => island.MaterialProperties = value;
+        }
 
         public void SetScreenOffsetOverride(Point offset) => island.SetScreenOffsetOverride(offset);
 
         public void SetFocus() => island.SetFocus();
 
 
-        public override bool Equals(object obj) => obj is XamlIsland i && island == i.island;
+        #region Equality
 
-        public override int GetHashCode() => island.GetHashCode();
+        public override bool Equals(object obj)
+        {
+            return obj is XamlIsland island &&
+                   EqualityComparer<IXamlIsland>.Default.Equals(this.island, island.island);
+        }
+
+        public override int GetHashCode()
+        {
+            return -705285172 + EqualityComparer<IXamlIsland>.Default.GetHashCode(island);
+        }
+
+        public static bool operator ==(XamlIsland left, XamlIsland right)
+        {
+            return EqualityComparer<XamlIsland>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(XamlIsland left, XamlIsland right)
+        {
+            return !(left == right);
+        }
+
+        #endregion
 
         #endregion
 
         #region Static methods
 
         [ThreadStatic]
-        private static Lazy<IXamlIslandStatics> theFactory = new Lazy<IXamlIslandStatics>(() =>
-        {
-            NativeMethods.RoGetActivationFactory(ActivatableClassName, typeof(IXamlIslandStatics).GUID, out IActivationFactory factory);
-            return (IXamlIslandStatics)factory;
-        });
+        private static Lazy<IXamlIslandStatics> statics = new Lazy<IXamlIslandStatics>(() =>
+            (IXamlIslandStatics)NativeMethods.RoGetActivationFactory(ActivatableClassName, typeof(IXamlIslandStatics).GUID));
 
         public static XamlIsland GetIslandFromElement(DependencyObject element)
         {
-            IXamlIsland island = theFactory.Value.GetIslandFromElement(element);
-            Panel panel = Marshal.GetTypedObjectForIUnknown(Marshal.GetIUnknownForObject(island), typeof(Panel)) as Panel;
-            return new XamlIsland(panel);
+            var island = statics.Value.GetIslandFromElement(element);
+            return island != null ? new XamlIsland(island) : null;
         }
 
         #endregion

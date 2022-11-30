@@ -8,6 +8,7 @@ using Windows.Graphics.DirectX;
 
 namespace Windows.UI.Xaml
 {
+    // FIXME: Find the GUID for this interface
     [InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
     public interface IAtlasRequestCallback
     {
@@ -15,7 +16,7 @@ namespace Windows.UI.Xaml
     }
 
     [InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
-    [Guid("06636c29-5a17-458d-8ea2-2422d997a922")]
+    [ComImport, Guid("06636c29-5a17-458d-8ea2-2422d997a922")]
     internal interface IWindowPrivate
     {
         bool TransparentBackground { get; set; }
@@ -36,7 +37,7 @@ namespace Windows.UI.Xaml
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class WindowPrivateExtensions
     {
-        public static bool IsTransparentBackground(this Window window)
+        public static bool GetTransparentBackground(this Window window)
         {
             var windowPrivate = (IWindowPrivate)(object)window;
             return windowPrivate.TransparentBackground;

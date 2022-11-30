@@ -7,14 +7,14 @@ using System.Runtime.InteropServices;
 namespace Windows.UI.Xaml.Hosting
 {
     [InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
-    [Guid("1c35e215-859e-41a3-922b-303b8699a29d")]
+    [ComImport, Guid("1c35e215-859e-41a3-922b-303b8699a29d")]
     public interface IXamlRuntimeSite
     {
         // I have no idea what this is used for...
     }
 
     [InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
-    [Guid("c805b0c0-6210-4e4f-b76a-e894e8b1a4ad")]
+    [ComImport, Guid("c805b0c0-6210-4e4f-b76a-e894e8b1a4ad")]
     internal interface IXamlRuntimeStatics
     {
         bool EnableImmersiveColors { get; set; }

@@ -9,7 +9,7 @@ using Windows.UI.Core;
 namespace Windows.ApplicationModel.Core
 {
     [InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
-    [Guid("6090202d-2843-4ba5-9b0d-fc88eecd9ce5")]
+    [ComImport, Guid("6090202d-2843-4ba5-9b0d-fc88eecd9ce5")]
     internal interface ICoreApplicationPrivate2
     {
         void InitializeForAttach();

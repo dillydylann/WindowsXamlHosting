@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace Windows.UI.Core
 {
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("d1498437-3bac-4be5-96cb-f6ad1fa6c4f4")]
+    [ComImport, Guid("d1498437-3bac-4be5-96cb-f6ad1fa6c4f4")]
     internal interface IPrivateCoreWindowFrameworkSynchronizedResize
     {
         bool SynchronizedResize { set; get; }
