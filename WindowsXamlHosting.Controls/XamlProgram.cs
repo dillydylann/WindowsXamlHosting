@@ -2,11 +2,13 @@
 // Copyright (c) 2022 Dylan Briedis <dylan@dylanbriedis.com>
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using MS.Internal.IO.Packaging;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
@@ -24,6 +26,10 @@ namespace Windows.UI.Xaml
         public static XamlProgram Current { get; private set; } = null;
 
         private CoreDispatcher desktopDispatcher;
+
+        private Mutex programMutex;
+        private Thread activationPipeServerThread;
+        private CancellationTokenSource activationPipeServerCancelSource;
 
         // Desktop-only properties
         public string AppInstanceName { get; }
@@ -98,27 +104,31 @@ namespace Windows.UI.Xaml
             if (SingleInstance)
             {
                 // Check for existing instances
-                using var mutex = new Mutex(false, AppInstanceName);
-                if (mutex.WaitOne(0, false))
+                using (programMutex = new Mutex(false, AppInstanceName))
                 {
-                    var thread = StartThread();
+                    if (programMutex.WaitOne(0, false))
+                    {
+                        var thread = StartThread();
 
-                    // Listen for UWP activation events
-                    new Thread(ActivationPipeServerThread) { Name = "Activation Pipe Server Thread", IsBackground = true }.Start();
+                        // Listen for UWP activation events
+                        activationPipeServerCancelSource = new CancellationTokenSource();
+                        activationPipeServerThread = new Thread(ActivationPipeServerThread) { Name = "Activation Pipe Server Thread", IsBackground = true };
+                        activationPipeServerThread.Start();
 
-                    thread.Join();
-                }
-                else
-                {
-                    // An instance is already running
-                    using var activationPipeClient = new NamedPipeClientStream(".", "LOCAL\\" + AppInstanceName, PipeDirection.Out);
-                    activationPipeClient.Connect();
+                        thread.Join();
+                    }
+                    else
+                    {
+                        // An instance is already running
+                        using var activationPipeClient = new NamedPipeClientStream(".", "LOCAL\\" + AppInstanceName, PipeDirection.Out);
+                        activationPipeClient.Connect();
 
-                    // Marshal the activation args and send it to the instance
-                    Marshal.ThrowExceptionForHR(CoMarshalInterface(new ManagedIStream(activationPipeClient), typeof(IActivatedEventArgs).GUID,
-                        GetActivatedEventArgs(), MSHCTX.MSHCTX_LOCAL, IntPtr.Zero, MSHLFLAGS.MSHLFLAGS_NORMAL));
+                        // Marshal the activation args and send it to the instance
+                        Marshal.ThrowExceptionForHR(CoMarshalInterface(new ManagedIStream(activationPipeClient), typeof(IActivatedEventArgs).GUID,
+                            GetActivatedEventArgs(), MSHCTX.MSHCTX_LOCAL, IntPtr.Zero, MSHLFLAGS.MSHLFLAGS_NORMAL));
 
-                    activationPipeClient.WaitForPipeDrain();
+                        activationPipeClient.WaitForPipeDrain();
+                    }
                 }
             }
 
@@ -126,6 +136,38 @@ namespace Windows.UI.Xaml
             else
             {
                 StartThread().Join();
+            }
+        }
+
+        public async Task RestartAsync(string arguments = null, bool close = true)
+        {
+            await Task.Run(() =>
+            {
+                // Stop all single-instance stuff
+                activationPipeServerCancelSource.Cancel();
+                activationPipeServerThread.Join();
+                programMutex.Close();
+            });
+
+            // Respawn ourselves
+            Process.Start(new ProcessStartInfo(Process.GetCurrentProcess().MainModule.FileName, arguments) { UseShellExecute = false });
+
+            // FIXME: Figure out how to handle e.Cancel situations
+            if (close)
+            {
+                // Attempt to close the main window
+                await desktopDispatcher?.RunAsync(CoreDispatcherPriority.High, () =>
+                {
+                    var hostWindow = XamlHostWindow.Current;
+                    if (hostWindow != null)
+                    {
+                        hostWindow.Close();
+                    }
+                    else if (Window.Current != null)
+                    {
+                        Window.Current.Close();
+                    }
+                });
             }
         }
 
@@ -173,21 +215,35 @@ namespace Windows.UI.Xaml
 
             if (inPackagedMode)
             {
-                return AppInstance.GetActivatedEventArgs();
+                var args = AppInstance.GetActivatedEventArgs();
+                if (args != null)
+                    return args;
             }
-            else
-            {
-                return new NormalLaunchActivatedEventArgs(string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
-            }
+
+            return new NormalLaunchActivatedEventArgs(string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
         }
 
         private void ActivationPipeServerThread()
         {
-            using var activationPipeServer = new NamedPipeServerStream("LOCAL\\" + AppInstanceName, PipeDirection.In, 1, PipeTransmissionMode.Message);
+            using var waitForConnectionEvent = new ManualResetEvent(false);
+            using var activationPipeServer = new NamedPipeServerStream("LOCAL\\" + AppInstanceName, PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
             while (true)
             {
-                activationPipeServer.WaitForConnection();
-
+                activationPipeServer.BeginWaitForConnection((r) =>
+                {
+                    try
+                    {
+                        activationPipeServer.EndWaitForConnection(r);
+                        waitForConnectionEvent.Set();
+                    }
+                    catch
+                    {
+                        activationPipeServerCancelSource.Cancel();
+                    }
+                }, null);
+                if (WaitHandle.WaitAny(new[] { waitForConnectionEvent, activationPipeServerCancelSource.Token.WaitHandle }) == 1)
+                    return;
+                
                 // Buffer for a nice clean read
                 using var unmarshalBufferStream = new MemoryStream();
                 activationPipeServer.CopyTo(unmarshalBufferStream);
@@ -203,6 +259,7 @@ namespace Windows.UI.Xaml
                 }
 
                 activationPipeServer.Disconnect();
+                waitForConnectionEvent.Reset();
             }
         }
     }
