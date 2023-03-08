@@ -111,7 +111,7 @@ namespace Windows.UI.Xaml
                 else
                 {
                     // An instance is already running
-                    using var activationPipeClient = new NamedPipeClientStream(".", AppInstanceName, PipeDirection.Out);
+                    using var activationPipeClient = new NamedPipeClientStream(".", "LOCAL\\" + AppInstanceName, PipeDirection.Out);
                     activationPipeClient.Connect();
 
                     // Marshal the activation args and send it to the instance
@@ -183,7 +183,7 @@ namespace Windows.UI.Xaml
 
         private void ActivationPipeServerThread()
         {
-            using var activationPipeServer = new NamedPipeServerStream(AppInstanceName, PipeDirection.In, 1, PipeTransmissionMode.Message);
+            using var activationPipeServer = new NamedPipeServerStream("LOCAL\\" + AppInstanceName, PipeDirection.In, 1, PipeTransmissionMode.Message);
             while (true)
             {
                 activationPipeServer.WaitForConnection();
